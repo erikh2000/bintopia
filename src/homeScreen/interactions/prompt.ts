@@ -53,7 +53,7 @@ async function _sayItem(operation:OperationType, itemName:string) {
   let operationText = itemName;
   switch(operation) {
     case OperationType.ADD_TO_BIN: operationText = ' added.'; break;
-    case OperationType.REMOVE_FROM_BIN: operationText = 'removed.'; break;
+    case OperationType.REMOVE_FROM_BIN: operationText = ' removed.'; break;
     default: throw Error('Unexpected');
   }
   return await say(itemName + operationText);
