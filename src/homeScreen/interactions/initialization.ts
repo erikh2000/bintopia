@@ -30,12 +30,21 @@ export async function init(setPrompt:IStringCallback, onFinal:IStringCallback):P
   return promise;
 }
 
-export function toggleMute(isMuted:boolean, setIsMuted:Function) {
+export function mute() {
   if (!recognizer) throw Error('Unexpected');
+  recognizer.mute();
+}
+
+export function unmute() {
+  if (!recognizer) throw Error('Unexpected');
+  recognizer.unmute();
+}
+
+export function toggleMute(isMuted:boolean, setIsMuted:Function) {
   if (isMuted) {
-    recognizer.unmute();
+    unmute();
   } else {
-    recognizer.mute();
+    mute();
   }
   setIsMuted(!isMuted);
 }

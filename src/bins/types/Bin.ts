@@ -10,4 +10,11 @@ export function duplicateBin(bin:Bin):Bin {
   };
 }
 
+export function createEmptyBin(binId:number):Bin {
+  return {
+    id: binId,
+    items: []
+  };
+}
+
 export default Bin;

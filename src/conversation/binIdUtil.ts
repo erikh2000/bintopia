@@ -5,22 +5,28 @@ const numberValues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30,40
 
 const unsupportedNumberWords = ['thousand', 'million', 'billion', 'trillion'];
 
-// Some words that could be between number words that should be ignored.
-const connectingWords = ['and', 'a', 'uh', 'um', 'or'];
+// Some words that could be between number words that should be ignored. These might
+// be the connecting words people intentionalyl use, ("one hundred and two"), 
+// interjection noises ("uh"), or mis-recognized words, e.g. speech recognition hears "or"
+// when user said "um".
+const connectingWords = ['and', 'a', 'uh', 'um', 'or', 'then'];
 
 /**
  * Parse an English bin identifier from speech transcription by recognizing number words.
- * Bin IDs from 0 to 999 are supported.
+ * Bin IDs from 0 to 999 are supported. If a bin ID is only partially parseable or there is
+ * ambiguity in interpretation, -1 will be returned. If multiple bin IDs are present, 
+ * the first will be returned.
  *
  * Examples:
  * - "bin twelve" => 12
  * - "put in one hundred two" => 102
  * - "add to bin forty five please" => 45
+ * - "hundred" => 100 (allowed to say "hundred" without a number in front of it)
  *
  * @param prompt Free-form text potentially containing number words as well as speech transcription junk.
  * @returns Bin ID value or -1 if no bin ID could be parsed.
  */
-export function findBinId(prompt:string):number|null {
+export function findBinId(prompt:string):number {
   const words = prompt.split(' ');
   let numberTotal = -1;
   let lastNumberValue = -1;
@@ -38,13 +44,13 @@ export function findBinId(prompt:string):number|null {
     // Check for invalid combinations of number values. Return -1 to avoid misinterpreting a bin ID.
     if (lastNumberValue !== -1) {
       if (numberValue === 100 && !(lastNumberValue > 0 && lastNumberValue < 10)) return -1;
-      if (numberValue >= 20 && numberValue <= 99 && lastNumberValue !== 100) return -1;
+      if (numberValue >= 20 && numberValue <= 90 && lastNumberValue !== 100) return -1;
       if (numberValue >= 1 && numberValue <= 9 && !(lastNumberValue >= 20 && lastNumberValue <= 100)) return -1;
       if (numberValue === 0) return -1;
     }
     lastNumberValue = numberValue;
 
-    if (numberValue === 100 && numberTotal) { numberTotal *= 100; continue; }
+    if (numberValue === 100 && numberTotal > 0) { numberTotal *= 100; continue; }
     if (numberTotal === -1) numberTotal = 0;
     numberTotal += numberValue;
   }

@@ -76,3 +76,11 @@ export async function webLlmGenerate(connection:LLMConnection, llmMessages:LLMMe
   addAssistantMessageToChatHistory(llmMessages, messageText);
   return messageText;
 }
+
+export async function webLlmInterruptGeneration(connection:LLMConnection):Promise<void> {
+  const engine = connection.webLLMEngine;
+  if (!engine) throw Error('Unexpected');
+  engine.interruptGenerate();
+  // TODO - you need to wait for any generation to complete. You can add your own check 
+  // withing webLlmGenerate() or better still, up in llmUtil.
+}

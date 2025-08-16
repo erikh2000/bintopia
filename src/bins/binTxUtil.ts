@@ -1,28 +1,36 @@
-import BinSet, { duplicateBinSet } from "./types/BinSet";
+import { createEmptyBin } from "./types/Bin";
+import BinSet, { duplicateBinSet, ELSEWHERE_BIN_ID } from "./types/BinSet";
 import BinTransaction from "./types/BinTransaction";
+import OperationType from "./types/OperationType";
 
 const theBinSet:BinSet = { bins: {} };
 
-export function processBinTransaction(tx:BinTransaction) {
-  let bin = theBinSet.bins[tx.binId];
-  if (!bin) {
-    bin = { id: tx.binId, items: [] };
-    theBinSet.bins[tx.binId] = bin;
-  }
-
-  if (tx.operation === OperationType.ADD_TO_BIN) {
-    for(const item of tx.items) {
-      if (!bin.items.includes(item)) {
-        bin.items.push(item);
-      }
-    }
-  } else if (tx.operation === OperationType.REMOVE_FROM_BIN) {
-    bin.items = bin.items.filter(i => !tx.items.includes(i));
-  } else {
-    console.warn(`Unknown bin transaction operation: ${tx.operation}`);
-  }
+function _removeItemFromBin(binSet:BinSet, binId:number, item:string) {
+  const bin = binSet.bins[binId];
+  if (!bin) return;
+  if (bin.items.includes(item)) bin.items = bin.items.filter(i => i !== item); 
 }
 
-export function getBinSet():BinSet {
+function _addItemToBin(binSet:BinSet, binId:number, item:string) {
+  let bin = binSet.bins[binId];
+  if (!bin) bin = binSet.bins[binId] = createEmptyBin(binId);
+  if (!bin.items.includes(item)) bin.items.push(item);
+}
+
+function _moveItem(binSet:BinSet, fromBinId:number, toBinId:number, item:string) {
+  _removeItemFromBin(binSet, fromBinId, item);
+  _addItemToBin(binSet, toBinId, item);
+}
+
+function _moveItems(binSet:BinSet, fromBinId:number, toBinId:number, items:string[]) {
+  items.forEach(item => _moveItem(binSet, fromBinId, toBinId, item));
+}
+
+export function processBinTransaction(tx:BinTransaction):BinSet {
+  switch(tx.operation) {
+    case OperationType.ADD_TO_BIN: _moveItems(theBinSet, ELSEWHERE_BIN_ID, tx.binId, tx.items); break;
+    case OperationType.REMOVE_FROM_BIN: _moveItems(theBinSet, tx.binId, ELSEWHERE_BIN_ID, tx.items); break;
+    default: throw Error('Unexpected');
+  }
   return duplicateBinSet(theBinSet);
-} // NEXT create a BinSetView component that takes a BinSet and displays it nicely. prompt will call a setter.
+}

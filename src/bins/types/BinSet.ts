@@ -15,4 +15,8 @@ export function duplicateBinSet(binSet:BinSet):BinSet {
   return newBinSet;
 }
 
+export function createEmptyBinSet():BinSet {
+  return {bins:{}};
+}
+
 export default BinSet;

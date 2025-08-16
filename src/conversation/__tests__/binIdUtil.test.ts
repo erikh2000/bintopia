@@ -82,7 +82,6 @@ describe('bindIdUtil', () => {
     });
 
     it('returns bin ID for transcript containing two connecting words between number words', () => {
-      // Contract: allow up to two connecting words
       expect(findBinId('one hundred and uh five')).toBe(105);
       expect(findBinId('thirty and um one')).toBe(31);
     });
