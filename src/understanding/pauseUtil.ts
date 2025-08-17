@@ -1,6 +1,6 @@
 // Because pausing should be very easy to signal, catch some other words that sound like it.
 // Be careful about including words that might be items though.
-const PAUSE_KEYWORDS = ['pause', 'paws', 'past', 'paused', 'cause', 'clause', 'laws', 'loss'];
+const PAUSE_KEYWORDS = ['pause', 'paws', 'past', 'paused', 'cause', 'clause', 'laws', 'loss', `how's`];
 
 export function isPausing(prompt:string):boolean {
   const word = prompt.toLowerCase().trim();

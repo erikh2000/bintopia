@@ -75,12 +75,15 @@ export function addConversationEvent(event:Event) {
   theUnprocessedEvents.push(event);
 }
 
-export function pauseConversation() {
+export async function pauseConversation() {
   if (theConversationState === ConversationState.PAUSED) return;
+  if (!theRecognizer) throw Error('Unexpected');
   stopSpeaking();
-  if (theRecognizer) theRecognizer.unmute(); // Need to be listening for "resume".
-  theUnprocessedEvents = []; // user will likely not want to hear information when resuming.
   _setConversationState(ConversationState.PAUSED);
+  theRecognizer.mute();
+  await say('paused');
+  theRecognizer.unmute(); // Need to be listening for "resume".
+  theUnprocessedEvents = []; // user will likely not want to hear information when resuming.
 }
 
 export function resumeConversation() {

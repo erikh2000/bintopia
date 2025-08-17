@@ -1,3 +1,5 @@
+// Don't add any dependencies to state from other modules.
+
 const DEFAULT_SPEECH_RATE = 1;
 
 let theSpeechRate = DEFAULT_SPEECH_RATE;
