@@ -1,4 +1,4 @@
-import { findBinId } from "@/conversation/binIdUtil";
+import { findBinId } from "@/understanding/binIdUtil";
 
 describe('bindIdUtil', () => {
   describe('findBinId()', () => {

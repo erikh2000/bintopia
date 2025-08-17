@@ -1,8 +1,8 @@
-import Bin from "@/bins/types/Bin";
-import BinSet from "@/bins/types/BinSet"
+import Bin from "@/transactions/types/Bin";
+import BinSet from "@/transactions/types/BinSet"
 import styles from './BinSetView.module.css';
 import BinView from "./BinView";
-import OperationType from "@/bins/types/OperationType";
+import OperationType from "@/transactions/types/OperationType";
 
 type Props = {
   binSet:BinSet,

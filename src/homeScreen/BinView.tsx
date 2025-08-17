@@ -1,6 +1,6 @@
-import { ELSEWHERE_BIN_ID } from '@/bins/types/BinSet';
+import { ELSEWHERE_BIN_ID } from '@/transactions/types/BinSet';
 import styles from './BinView.module.css';
-import Bin from '@/bins/types/Bin';
+import Bin from '@/transactions/types/Bin';
 
 type Props = {
   bin:Bin,

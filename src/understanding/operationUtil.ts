@@ -1,4 +1,4 @@
-import OperationType from '@/bins/types/OperationType';
+import OperationType from '@/transactions/types/OperationType';
 
 const ADD_MATCH_RULES = ['add', 'adding', 'put...in', 'putting...in', 'put...into', 'putting...into', 'put...inside', 'putting...inside',
   'insert', 'inserting', 'place', 'placing', 'drop...in', 'dropping...in'];
