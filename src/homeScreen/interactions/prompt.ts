@@ -7,10 +7,13 @@ import { findBinId } from "@/understanding/binIdUtil";
 import BinTransaction from "@/transactions/types/BinTransaction";
 import { processBinTransaction } from "@/transactions/binTxUtil";
 import OperationType from "@/transactions/types/OperationType";
-import { addConversationEvent } from "@/conversation/conversationUtil";
+import { addConversationEvent, isPaused, pauseConversation, resumeConversation } from "@/conversation/conversationUtil";
 import { createSetActiveBinEvent } from "@/conversation/types/SetActiveBinEvent";
 import { createSetActiveOperationEvent } from "@/conversation/types/SetActiveOperationEvent";
 import { createTransactionEvent } from "@/conversation/types/TransactionEvent";
+import { isPausing, isResuming } from "@/understanding/pauseUtil";
+import { createResumeEvent } from "@/conversation/types/ResumeEvent";
+import { createPauseEvent } from "@/conversation/types/PauseEvent";
 
 let activeBinId:number|null = null;
 let activeOperation:OperationType|null = null;
@@ -37,6 +40,20 @@ export async function submitPrompt(prompt:string, setPrompt:Function, setIsBusy:
     }
 
     setIsBusy(true);
+
+    if (isPaused()) {
+      if (isResuming(prompt)) {
+        resumeConversation();
+        addConversationEvent(createResumeEvent());
+      }
+      return;
+    }
+
+    if (isPausing(prompt)) {
+      pauseConversation();
+      addConversationEvent(createPauseEvent());
+      return;
+    }
 
     const nextBinId = findBinId(prompt);
     if (nextBinId !== -1 && nextBinId !== activeBinId) {

@@ -20,11 +20,12 @@ function _setConversationState(newState:ConversationState) {
 }
 
 function _onUserStartSpeaking() {
+  if (theConversationState === ConversationState.PAUSED) return;
   _setConversationState(ConversationState.USER_SPEAKING, );
 }
 
 async function _onUserStopSpeaking() {
-  if (theUnprocessedEvents.length === 0) return;
+  if (theUnprocessedEvents.length === 0 || theConversationState === ConversationState.PAUSED) return;
   if (!theRecognizer) throw Error('Unexpected');
   const summaryText = summarizeEvents(theUnprocessedEvents, theMaxSummaryDurationMs);
   theUnprocessedEvents = [];
@@ -74,16 +75,20 @@ export function addConversationEvent(event:Event) {
   theUnprocessedEvents.push(event);
 }
 
-export function pause() {
+export function pauseConversation() {
   if (theConversationState === ConversationState.PAUSED) return;
   stopSpeaking();
+  if (theRecognizer) theRecognizer.unmute(); // Need to be listening for "resume".
   theUnprocessedEvents = []; // user will likely not want to hear information when resuming.
-  if (theRecognizer) theRecognizer.mute();
   _setConversationState(ConversationState.PAUSED);
 }
 
-export function resume() {
+export function resumeConversation() {
   if (theConversationState !== ConversationState.PAUSED) return;
   if (theRecognizer) theRecognizer.unmute();
   _setConversationState(ConversationState.IDLE);
+}
+
+export function isPaused():boolean {
+  return theConversationState === ConversationState.PAUSED;
 }
