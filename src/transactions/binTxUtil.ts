@@ -1,9 +1,9 @@
 import { createEmptyBin } from "./types/Bin";
-import BinSet, { duplicateBinSet, ELSEWHERE_BIN_ID } from "./types/BinSet";
+import BinSet, { createEmptyBinSet, duplicateBinSet, ELSEWHERE_BIN_ID } from "./types/BinSet";
 import BinTransaction from "./types/BinTransaction";
 import OperationType from "./types/OperationType";
 
-const theBinSet:BinSet = { bins: {} };
+const theBinSet:BinSet = createEmptyBinSet();
 
 function _removeItemFromBin(binSet:BinSet, binId:number, item:string) {
   const bin = binSet.bins[binId];
@@ -26,8 +26,13 @@ function _moveItems(binSet:BinSet, fromBinId:number, toBinId:number, items:strin
   items.forEach(item => _moveItem(binSet, fromBinId, toBinId, item));
 }
 
+function _clearBinSet(binSet:BinSet) {
+  binSet.bins = {};
+}
+
 export function processBinTransaction(tx:BinTransaction):BinSet {
   switch(tx.operation) {
+    case OperationType.CLEAR_BINSET: _clearBinSet(theBinSet); break;
     case OperationType.ADD_TO_BIN: _moveItems(theBinSet, ELSEWHERE_BIN_ID, tx.binId, tx.items); break;
     case OperationType.REMOVE_FROM_BIN: _moveItems(theBinSet, tx.binId, ELSEWHERE_BIN_ID, tx.items); break;
     default: throw Error('Unexpected');

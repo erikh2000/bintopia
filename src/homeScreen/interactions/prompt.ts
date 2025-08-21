@@ -1,19 +1,19 @@
 import { isServingLocally } from "@/developer/devEnvUtil";
 import { isLlmConnected } from "@/llm/llmUtil";
 import { findOperation } from "../../understanding/operationUtil";
-import { errorToast } from "decent-portal";
+import { errorToast, infoToast } from "decent-portal";
 import { findItems } from "../../understanding/itemsUtil";
 import { findBinId } from "@/understanding/binIdUtil";
 import BinTransaction from "@/transactions/types/BinTransaction";
 import { processBinTransaction } from "@/transactions/binTxUtil";
 import OperationType from "@/transactions/types/OperationType";
-import { addConversationEvent, isPaused, pauseConversation, resumeConversation } from "@/conversation/conversationUtil";
-import { createSetActiveBinEvent } from "@/conversation/types/SetActiveBinEvent";
-import { createSetActiveOperationEvent } from "@/conversation/types/SetActiveOperationEvent";
+import { addConversationEvent, clearUnprocessedEvents, isPaused, pauseConversation, resumeConversation, speakSummaryOfUnprocessedEvents } from "@/conversation/conversationUtil";
+import { createSetActiveBinOperationEvent } from "@/conversation/types/SetActiveBinOperationEvent";
 import { createTransactionEvent } from "@/conversation/types/TransactionEvent";
 import { isPausing, isResuming } from "@/understanding/pauseUtil";
 import { createResumeEvent } from "@/conversation/types/ResumeEvent";
 import { createPauseEvent } from "@/conversation/types/PauseEvent";
+import { createMissingBinOperationEvent } from "@/conversation/types/MissingBinOperationEvent";
 
 let activeBinId:number|null = null;
 let activeOperation:OperationType|null = null;
@@ -25,6 +25,20 @@ function _createTransaction(activeBinId:number|null, activeOperation:OperationTy
     operation: activeOperation,
     items: items
   };
+}
+
+function _executeDeveloperCommand(prompt:string, setPrompt:Function, setBinSet:Function) {
+  if (prompt === '@reset') {
+    activeBinId = null;
+    activeOperation = null;
+    const nextBinSet = processBinTransaction({binId: 0, operation: OperationType.CLEAR_BINSET, items: []});
+    setBinSet(nextBinSet);
+    clearUnprocessedEvents();
+  } else {
+    errorToast(`Unknown developer command: ${prompt}`);
+  }
+  setPrompt('');
+  infoToast(`Developer command executed: ${prompt}`);
 }
 
 export async function submitPrompt(prompt:string, setPrompt:Function, setIsBusy:Function, 
@@ -41,6 +55,11 @@ export async function submitPrompt(prompt:string, setPrompt:Function, setIsBusy:
 
     setIsBusy(true);
 
+    if (prompt.startsWith('@')) {
+      _executeDeveloperCommand(prompt, setPrompt, setBinSet);
+      return;
+    }
+
     if (isPaused()) {
       if (isResuming(prompt)) {
         resumeConversation();
@@ -55,22 +74,26 @@ export async function submitPrompt(prompt:string, setPrompt:Function, setIsBusy:
       return;
     }
 
+    let wasActiveBinOperationChanged = false;
     const nextBinId = findBinId(prompt);
     if (nextBinId !== -1 && nextBinId !== activeBinId) {
       setActiveBinId(nextBinId);
       activeBinId = nextBinId;
-      addConversationEvent(createSetActiveBinEvent(nextBinId));
+      wasActiveBinOperationChanged = true;
     }
 
     const nextOperation = await findOperation(prompt);
     if (nextOperation !== null && nextOperation !== activeOperation) {
       setActiveOperation(nextOperation);
       activeOperation = nextOperation;
-      addConversationEvent(createSetActiveOperationEvent(nextOperation));
+      wasActiveBinOperationChanged = true;
     }
 
+    if (wasActiveBinOperationChanged) addConversationEvent(createSetActiveBinOperationEvent(activeBinId, activeOperation));
+
     const items = await findItems(prompt, _onFoundItem);
-    console.log(`Bin ID: ${activeBinId}, operation: ${activeOperation}, items: ${items}`);
+    if (items.length && (activeBinId === null || activeOperation === null)) addConversationEvent(createMissingBinOperationEvent(activeBinId, activeOperation));
+    speakSummaryOfUnprocessedEvents();
 
     async function _onFoundItem(itemName:string) {
       const transaction = _createTransaction(activeBinId, activeOperation, [itemName]);

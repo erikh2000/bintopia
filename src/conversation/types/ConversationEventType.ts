@@ -1,9 +1,9 @@
 enum ConversationEventType {
   TRANSACTION,
-  SET_ACTIVE_BIN,
-  SET_ACTIVE_OPERATION,
+  SET_ACTIVE_BIN_OPERATION,
   PAUSE,
-  RESUME
+  RESUME,
+  MISSING_BIN_OPERATION
 }
 
 export default ConversationEventType;

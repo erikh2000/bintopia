@@ -26,7 +26,7 @@ const N_SHOT_EXAMPLES:NShotExchange[] = [
 
 // Instead of fighting with the LLM to avoid certain items, just filter them out here.
 const EXCLUDE_ITEMS = ['thing', 'stuff', 'item', 'items', 'these', 'this', 'number', 'bin', '?', 
-  'added', 'it'];
+  'added', 'it', 'the'];
 
 // These keywords signal that the LLM thinks it has something important to say rather than following instructions and listing items.
 const BAD_RESPONSE_KEYWORDS = ['assistant', 'assistance', 'illegal', 'cannot', `can't`];

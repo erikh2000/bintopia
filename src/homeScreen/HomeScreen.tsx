@@ -10,16 +10,14 @@ import BinSetView from "./BinSetView";
 import BinSet, { createEmptyBinSet } from "@/transactions/types/BinSet";
 import OperationType from "@/transactions/types/OperationType";
 import ConversationState from "@/conversation/types/ConversationState";
+import Face, { FaceIcon } from "@/components/face/Face";
 
-function _getConversationStateDescription(state:ConversationState, isBusy:boolean):string {
+function _getFaceIcon(state:ConversationState, isBusy:boolean):FaceIcon {
   switch(state) {
-    case ConversationState.INITIALIZING: return 'Initializing';
-    case ConversationState.IDLE: return isBusy ? 'Thinking' : 'Waiting';
-    case ConversationState.USER_SPEAKING: return 'Listening';
-    case ConversationState.ASSISTANT_SPEAKING: return 'Speaking';
-    case ConversationState.FATAL_ERROR: return 'Conversation error';
-    case ConversationState.PAUSED: return 'Paused - say "Resume" to continue';
-    default: return 'Unknown conversation state';
+    case ConversationState.IDLE: return isBusy ? FaceIcon.THINKING : FaceIcon.NEUTRAL;
+    case ConversationState.USER_SPEAKING: return FaceIcon.LISTENING;
+    case ConversationState.ASSISTANT_SPEAKING: return FaceIcon.SPEAKING;
+    default: return FaceIcon.SLEEPING;
   }
 }
 
@@ -61,7 +59,7 @@ function HomeScreen() {
   }
 
   const arePromptsDisabled = isBusy || !isInitialized;
-  const conversationStateDescription = _getConversationStateDescription(conversationState, isBusy);
+  const faceIcon = _getFaceIcon(conversationState, isBusy);
   
   return (
     <div className={styles.container}>
@@ -70,7 +68,7 @@ function HomeScreen() {
         <p><input type="text" className={styles.promptBox} placeholder="Say what you are doing with the bins and items" 
             value={prompt} onKeyDown={_onKeyDown} onChange={(e) => setPrompt(e.target.value)} disabled={arePromptsDisabled}/>
         <ContentButton text="Send" onClick={() => _processPrompt(prompt)} disabled={arePromptsDisabled}/></p>
-        {conversationStateDescription}
+        <Face faceIcon={faceIcon} />
         <BinSetView binSet={binSet} activeBinId={activeBinId} activeOperation={activeOperation}/>
       </div>
     </div>

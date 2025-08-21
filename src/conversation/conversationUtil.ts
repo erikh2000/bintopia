@@ -24,8 +24,8 @@ function _onUserStartSpeaking() {
   _setConversationState(ConversationState.USER_SPEAKING, );
 }
 
-async function _onUserStopSpeaking() {
-  if (theUnprocessedEvents.length === 0 || theConversationState === ConversationState.PAUSED) return;
+export async function speakSummaryOfUnprocessedEvents() {
+  if (theUnprocessedEvents.length === 0 || theConversationState !== ConversationState.IDLE) return;
   if (!theRecognizer) throw Error('Unexpected');
   const summaryText = summarizeEvents(theUnprocessedEvents, theMaxSummaryDurationMs);
   theUnprocessedEvents = [];
@@ -38,6 +38,12 @@ async function _onUserStopSpeaking() {
     theRecognizer.unmute();
     _setConversationState(ConversationState.IDLE);
   }
+}
+
+function _onUserStopSpeaking() {
+  if (theConversationState !== ConversationState.USER_SPEAKING) return;
+  _setConversationState(ConversationState.IDLE);
+  speakSummaryOfUnprocessedEvents();
 }
 
 export function setMaxSummaryDuration(maxSummaryDurationMs:number) {
@@ -75,15 +81,19 @@ export function addConversationEvent(event:Event) {
   theUnprocessedEvents.push(event);
 }
 
+export function clearUnprocessedEvents() {
+  theUnprocessedEvents = [];
+}
+
 export async function pauseConversation() {
   if (theConversationState === ConversationState.PAUSED) return;
   if (!theRecognizer) throw Error('Unexpected');
   stopSpeaking();
   _setConversationState(ConversationState.PAUSED);
   theRecognizer.mute();
-  await say('paused');
+  await say('sleeping');
   theRecognizer.unmute(); // Need to be listening for "resume".
-  theUnprocessedEvents = []; // user will likely not want to hear information when resuming.
+  clearUnprocessedEvents(); // user will likely not want to hear information when resuming.
 }
 
 export function resumeConversation() {
